@@ -2,7 +2,7 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-12 text-center" id="page-title">
-                <h2 class="form-title"><?php echo ucwords($user['User']['name']); ?></h2>                
+                <h2 class="form-title"><?php echo ucwords($user['User']['name']); ?></h2>  
             </div>
 
             <div class="col-sm-2"></div>
@@ -56,7 +56,13 @@
                         <?php endforeach;?>
                     </tbody>
                 </table>
-                
+                <div class="col-md-12 text-center">
+                <?php                         
+                    if ($this->Paginator->hasNext()) {
+                        echo $this->Paginator->next('Show More');
+                    } 
+                ?>
+                </div>
             </div>
             <div class="col-sm-2"></div>        
         </div>

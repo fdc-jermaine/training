@@ -23,7 +23,7 @@
                                 <!-- message if from login user -->
                                 <?php if ( $message['Message']['from_id'] == AuthComponent::user('id')) : ?>
                                 <td><i class="fa fa-trash" id="<?php echo $message['Message']['to_id']; ?>"></i></td>
-                                <td><?php echo ucwords($message['Sender']['sendername']); ?></td>
+                                <td><?php echo ucwords($message['Receiver']['receivername']); ?></td>
                                 <td>
                                     <p>
                                     <?php 
@@ -69,7 +69,13 @@
                         <?php endforeach;?>
                     </tbody>
                 </table>
-                
+                <div class="col-md-12 text-center">
+                <?php                         
+                    if ($this->Paginator->hasNext()) {
+                        echo $this->Paginator->next('Show More');
+                    } 
+                ?>
+                </div>
             </div>
             <div class="col-sm-2"></div>        
         </div>

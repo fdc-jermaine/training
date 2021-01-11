@@ -2,6 +2,7 @@
 
 class MessagesController extends AppController {
     public $components = array('Paginator');
+    public $paginate = array();
 
     public function create() {
         $this->loadModel('User');
@@ -50,7 +51,40 @@ class MessagesController extends AppController {
             WHERE (Message.from_id = ".$authId." || Message.to_id = ".$authId.") && Message.is_new = '1'
             ORDER BY Message.created DESC
         ";
-        $data = $this->Message->query($query);
+        $this->Paginator->settings = array(
+            'fields' => array(
+                'Message.*',
+                'Sender.id as senderid',
+                'Sender.name as sendername',
+                'Sender.image as senderimage',
+                'Receiver.id as receiverid',
+                'Receiver.name as receivername',
+                'Receiver.image as receiverimage'
+            ),
+            'conditions' => array(
+                array(
+                    'OR' => array('Message.from_id' => $authId, 'Message.to_id' => $authId),
+                ),
+                array('Message.is_new' => '1')          
+            ),
+            'order' => 'Message.created DESC',
+            'limit' => 10,
+            'joins' => array(
+                array(
+                    'type' => 'LEFT',
+                    'table' => 'users',
+                    'alias' => 'Sender',
+                    'conditions' => 'Sender.id = Message.from_id'
+                ),
+                array(
+                    'type' => 'LEFT',
+                    'table' => 'users',
+                    'alias' => 'Receiver',
+                    'conditions' => 'Receiver.id = Message.to_id'
+                ),
+            )
+        );
+        $data = $this->Paginator->paginate();
         $this->set('messages', $data);
     }
 
@@ -61,25 +95,41 @@ class MessagesController extends AppController {
         $this->User->id = $id;
         $user = $this->User->read();
 
-        $query = "
-            SELECT 
-                Message.*, 
-                Sender.id senderid, 
-                Sender.name as sendername, 
-                Sender.image senderimage, 
-                Receiver.id receiverid,
-                Receiver.name receivername, 
-                Receiver.image receiverimage
-            FROM messages AS Message 
-            LEFT JOIN users as Sender 
-            ON Sender.id = Message.from_id
-            LEFT JOIN users as Receiver
-            ON Receiver.id = Message.to_id
-            WHERE ((Message.from_id = ".$id." && Message.to_id = ".$authId.") 
-                    || (Message.from_id = ".$authId." && Message.to_id = ".$id."))
-            ORDER BY Message.created DESC
-        ";   
-        $messages = $this->Message->query($query);;
+        $this->Paginator->settings = array(
+            'fields' => array(
+                'Message.*',
+                'Sender.id as senderid',
+                'Sender.name as sendername',
+                'Sender.image as senderimage',
+                'Receiver.id as receiverid',
+                'Receiver.name as receivername',
+                'Receiver.image as receiverimage'
+            ),
+            'conditions' => array(
+                'OR' => array(
+                    array('Message.from_id' => $id, 'Message.to_id' => $authId),
+                    array('Message.from_id' => $authId, 'Message.to_id' => $id)
+                )
+            ),
+            'order' => 'Message.created DESC',
+            'limit' => 10,
+            'joins' => array(
+                array(
+                    'type' => 'LEFT',
+                    'table' => 'users',
+                    'alias' => 'Sender',
+                    'conditions' => 'Sender.id = Message.from_id'
+                ),
+                array(
+                    'type' => 'LEFT',
+                    'table' => 'users',
+                    'alias' => 'Receiver',
+                    'conditions' => 'Receiver.id = Message.to_id'
+                ),
+            )
+        );
+
+        $messages = $this->Paginator->paginate();
         $this->set(compact('messages', 'user'));
     }
 
