@@ -33,24 +33,7 @@ class MessagesController extends AppController {
     }
 
     public function messageList() {        
-        $authId = $this->Auth->user('id');    
-        $query = "
-            SELECT 
-                Message.*, 
-                Sender.id senderid, 
-                Sender.name as sendername, 
-                Sender.image senderimage, 
-                Receiver.id receiverid,
-                Receiver.name receivername, 
-                Receiver.image receiverimage
-            FROM messages AS Message 
-            LEFT JOIN users as Sender 
-            ON Sender.id = Message.from_id
-            LEFT JOIN users as Receiver
-            ON Receiver.id = Message.to_id
-            WHERE (Message.from_id = ".$authId." || Message.to_id = ".$authId.") && Message.is_new = '1'
-            ORDER BY Message.created DESC
-        ";
+        $authId = $this->Auth->user('id');           
         $this->Paginator->settings = array(
             'fields' => array(
                 'Message.*',
