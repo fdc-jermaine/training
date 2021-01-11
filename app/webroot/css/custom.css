@@ -1,0 +1,42 @@
+#profile-box img{
+    max-width: 300px;
+}
+#profile-box {
+    text-align: center;
+}
+
+#message-profile img{
+    max-width: 50px;
+}
+
+.message-box {
+    border-bottom: 1px solid #ccc;
+    padding: 20px 0px;
+}
+
+#message-table-box img {
+    max-width: 50px;
+}
+
+#message-date {
+    margin-top: 20px;
+}
+
+#message-table-box td  {
+    vertical-align : middle;
+}
+#page-title {
+    margin-bottom: 30px;
+}
+
+#message-table-box i:hover {
+    cursor: pointer;
+    color: red;
+}
+
+#reply-box {
+    margin-bottom: 20px;
+}
+form {
+    width: 100%;
+}
