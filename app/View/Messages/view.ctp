@@ -97,7 +97,7 @@ function getMessages(id, count) {
         'url': url,
         evalScripts: true,
         success: function (data, status) {  
-            $('.loading').fadeOut('slow', function() {                
+            $('.loading').fadeOut('fast', function() {                
                 $('#message-here').html(data);
             })
         }

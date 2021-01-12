@@ -44,7 +44,7 @@ form div {
 $(document).ready(function() {
     let url = "<?php echo $this->Html->url(array('controller' => 'users','action' => 'userList')); ?>";
     $('.users').select2({
-        placeholder: 'Search user',
+        placeholder: 'Enter user\'s name here',
         ajax: {
             url: url,
             dataType: 'json',

@@ -47,9 +47,6 @@ form {
 #message-table-box p {
     margin-bottom: 0px;
 }
-.select2-container {
-    width: 100% !important;
-}
 #create-message form div {
     padding: 0;
 }
