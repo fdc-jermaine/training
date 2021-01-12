@@ -23,7 +23,7 @@ class MessagesController extends AppController {
                             array('from_id' => $id, 'to_id' => $authId),
                             array('from_id' => $authId, 'to_id' => $id)
                         ),
-                        array('is_new' => '1')
+                        array('is_new' => '1')                       
                     )
                 );
                 if ($this->Message->save($this->request->data)) {                  
@@ -53,7 +53,8 @@ class MessagesController extends AppController {
                 array(
                     'OR' => array('Message.from_id' => $authId, 'Message.to_id' => $authId),
                 ),
-                array('Message.is_new' => '1')          
+                array('Message.is_new' => '1'),
+                array('status !=' => 'deleted')        
             ),
             'order' => 'Message.created DESC',
             'limit' => 10,
@@ -91,15 +92,17 @@ class MessagesController extends AppController {
         $authId = $this->Auth->user('id');   
         $id = $this->request->data['id']; 
         if ($this->request->is('post')) {
-            $this->Message->deleteAll(
+            // update status to deleted
+            $this->Message->updateAll(
+                array('status' => '"deleted"'),
                 array(
                     'OR' => array(
                         array('from_id' => $id, 'to_id' => $authId),
                         array('from_id' => $authId, 'to_id' => $id)
                     )
-                ),
-                false
-            );            
+                )
+            );     
+              
         } else {
             // code if not deleted
         }
@@ -111,7 +114,10 @@ class MessagesController extends AppController {
         $this->Message->id = $id;
         $message = $this->Message->read();        
        
-        $this->Message->delete($id);
+        $this->Message->updateAll(
+            array('status' => '"deleted"'),
+            array('id' => $id)
+        );     
         $this->Message->query("
             UPDATE messages 
             SET is_new='1' 
@@ -223,7 +229,8 @@ class MessagesController extends AppController {
                 'OR' => array(
                     array('Message.from_id' => $id, 'Message.to_id' => $authId),
                     array('Message.from_id' => $authId, 'Message.to_id' => $id)
-                )
+                ),
+                array('status !=' => 'deleted')
             ),
             'order' => 'Message.created DESC',
             'limit' => $count,

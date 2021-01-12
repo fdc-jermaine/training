@@ -95,7 +95,8 @@ $(document).ready(function() {
                 'url': url,
                 evalScripts: true,
                 data:({id:id}),
-                success: function (data, status) {     
+                success: function (data, status) {  
+                    console.log(data)   
                     _this.closest('tr').fadeOut();           
                 }
             });
