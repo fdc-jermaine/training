@@ -40,3 +40,19 @@
 form {
     width: 100%;
 }
+#message-date {
+    color: #ccc;
+    font-size: 14px;
+}
+#message-table-box p {
+    margin-bottom: 0px;
+}
+.select2-container {
+    width: 100% !important;
+}
+#create-message form div {
+    padding: 0;
+}
+.loading {
+    max-width: 200px !important;
+}

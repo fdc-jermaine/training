@@ -4,7 +4,7 @@ class UsersController extends AppController {
     public $helpers = array('Js' => array('Jquery'), 'Paginator');
 
     public function beforeFilter() {
-        parent::beforeFilter();
+        parent::beforeFilter();        
         $this->Auth->allow('add', 'logout');
     }
 
@@ -112,4 +112,30 @@ class UsersController extends AppController {
             array('action' => 'login')
         );
     }
+
+    public function create() {
+
+    }
+
+    public function userList() {
+        $result = array();
+        if($this->request->is('get')) {
+            $term = $this->request->query['searchTerm'];
+            $users = $this->User->find('all', array(
+                'conditions' => array(
+                    'User.name LIKE' => '%'.$term.'%'
+                )
+            ));
+
+            $result = array();
+            foreach($users as $key => $user) {
+                $result[$key]['id'] = (int) $user['User']['id'];
+                $result[$key]['text'] = $user['User']['name'];
+            }
+        }
+        
+        echo json_encode($result);
+        exit;
+    }
+    
 }

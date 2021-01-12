@@ -2,17 +2,30 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-3"></div>
-            <div class="col-sm-6" id="create-message">
+            <div class="col-sm-6">
             <?php echo $this->Flash->render(); ?>
             <?php echo $this->Form->create('Message'); ?>
                 <div class="form-group">                    
                     <label>Send To:</label>
-                    <?php 
+                    <div>
+                        <select class="users form-control" style="width:500px" name="users"></select>
+                    </div>
+                    <!-- <?php 
+                        $options = array();
+                        $options[0] = "Please type user name.";
+                        foreach($users as $user) {
+                            $options[$user['User']['id']] = $user['User']['name'];                }
+
+                        // user list
                         echo $this->Form->input(
                             'to_id',
-                            array('label' => false, 'class' => 'users form-control')
+                            array(
+                                'options' => $options,
+                                'class' => 'usersList form-control',
+                                'label' => false
+                            )
                         );
-                    ?>
+                    ?> -->
                 </div>
 
                 <div class="form-group">
@@ -44,7 +57,7 @@ form div {
 $(document).ready(function() {
     let url = "<?php echo $this->Html->url(array('controller' => 'users','action' => 'userList')); ?>";
     $('.users').select2({
-        placeholder: 'Search user',
+        placeholder: 'Select an item',
         ajax: {
             url: url,
             dataType: 'json',

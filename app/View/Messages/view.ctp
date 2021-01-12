@@ -17,53 +17,12 @@
                     <input type="hidden" id="to_id" value="<?php echo $user['User']['id']; ?>"></input>
                     <button class="btn btn-sm btn-primary" id="reply">[ Reply ]</button>
                 </div>
-                
-                <table class="table">
-                    <thead></thead>
-                    <tbody id="message-body">
-                        <?php foreach($messages as $message) : ?>
-                            <tr id="tr<?php echo $message['Message']['id']; ?>">
-                                <!-- message if from login user -->
-                                <?php if ( $message['Message']['from_id'] == AuthComponent::user('id')) : ?>
-                                    <td><i class="fa fa-trash" onclick="deleteMessage(<?php echo $message['Message']['id']; ?>)"></i></td>
-                                    <td><?php echo ucwords($message['Sender']['sendername']); ?></td>
-                                    <td>
-                                        <p><?php echo $message['Message']['content']; ?></p>
-                                        <span id="message-date"><?php echo date('Y/m/d h:i A', strtotime($message['Message']['created'])); ?></span>
-                                    </td>
-                                    <td class="text-center">
-                                        <?php 
-                                            $image = $message['Sender']['senderimage'] ? '/profile/'.$message['Sender']['senderimage'] : 'https://www.pimacountyfair.com/wp-content/uploads/2016/07/user-icon-6.png';
-                                            echo $this->Html->image($image);     
-                                        ?>
-                                    </td>
-                                    <!-- message is not from login user -->
-                                <?php else: ?>
-                                    <td><i class="fa fa-trash" onclick="deleteMessage(<?php echo $message['Message']['id']; ?>)"></i></td>
-                                    <td><?php echo ucwords($message['Sender']['sendername']); ?></td>
-                                    <td class="text-center">
-                                        <?php 
-                                            $image = $message['Sender']['senderimage'] ? '/profile/'.$message['Sender']['senderimage'] : 'https://www.pimacountyfair.com/wp-content/uploads/2016/07/user-icon-6.png';
-                                            echo $this->Html->image($image);     
-                                        ?>
-                                    </td>    
-                                    <td>
-                                        <p><?php echo $message['Message']['content']; ?></p>
-                                        <span id="message-date"><?php echo date('Y/m/d h:i A', strtotime($message['Message']['created'])); ?></span>
-                                    </td>                                
-                                <?php endif; ?>
-                            </tr>
-                        <?php endforeach;?>
-                    </tbody>
-                </table>
-                <div class="col-md-12 text-center">
-                <?php                         
-                    if ($this->Paginator->hasNext()) {
-                        echo $this->Paginator->next('Show More');
-                    } 
-                ?>
+                <div class="message-loading text-center">
+                    <?php echo $this->Html->image('200.gif', array('class' => 'loading')); ?>
                 </div>
-            </div>
+
+                <div id="message-here"></div>
+
             <div class="col-sm-2"></div>        
         </div>
     </div>
@@ -71,6 +30,10 @@
 
 <script>
 $(document).ready(function() {   
+    let user_id = "<?php echo $user['User']['id']; ?>";
+    let count = "<?php echo $count; ?>"
+    getMessages(user_id, count); 
+
     const REPLY = {
         content: '',
         to_id: ''
@@ -86,9 +49,12 @@ $(document).ready(function() {
                 'url': url,
                 evalScripts: true,
                 data:(REPLY),
-                success: function (data, status) {  
+                success: function (result, status) {  
+                    var data = jQuery.parseJSON(result);
+                    if(data.success) {
+                        getMessages(user_id, count); 
+                    }
                     $('#content-id').val("")
-                    addRow(data)
                 }
             });
         } else {
@@ -97,18 +63,6 @@ $(document).ready(function() {
     });
 });
 
-function addRow(result) {
-    var data = jQuery.parseJSON(result);
-    console.log(result);
-    var row = 
-        '<tr id=tr'+data.id+'>' +
-            '<td><i class="fa fa-trash" onclick="deleteMessage('+data.id+')"></i></td>' +
-            '<td>'+data.sendername+'</td>' + 
-            '<td><p>'+data.content+'</p><span>'+data.created+'</span></td>' +
-            '<td class="text-center"><img src='+data.senderimage+'></td>' +
-        '</tr>'
-    $(row).prependTo('#message-body')
-}
 
 function deleteMessage(id) {
     let url = "<?php echo $this->Html->url(array('controller' => 'messages','action' => 'deleteById')); ?>";
@@ -126,5 +80,26 @@ function deleteMessage(id) {
             }
         });
     } 
+}
+function paginate(count) {
+    let user_id = "<?php echo $user['User']['id']; ?>";
+    $('#message-here').html('');
+    $('.loading').fadeIn();
+    getMessages(user_id, count)
+}
+function getMessages(id, count) {
+    let url = "<?php echo $this->Html->url(array('controller' => 'messages','action' => 'ajax', )); ?>";
+    url = url+'/'+id+'/'+count
+    $.ajax({
+        'type': "get",
+        'url': url,
+        evalScripts: true,
+        success: function (data, status) {  
+            console.log(data)
+            $('.loading').fadeOut('slow', function() {                
+                $('#message-here').html(data);
+            })
+        }
+    });
 }
 </script>

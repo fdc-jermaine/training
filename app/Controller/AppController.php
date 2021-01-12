@@ -54,4 +54,9 @@ class AppController extends Controller {
             )
         )
     );
+
+    public function beforeFilter() {
+        parent::beforeFilter();
+        date_default_timezone_set('Asia/Manila');
+    }
 }

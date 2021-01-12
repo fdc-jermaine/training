@@ -11,7 +11,6 @@
                     );
                 ?>
             </div>
-
             <div class="col-sm-2"></div>
             <div class="col-sm-8" id="message-table-box">   
                 <?php echo $this->Flash->render(); ?>
@@ -34,7 +33,7 @@
                                         );
                                     ?>
                                     </p>
-                                    <span id="message-date"><?php echo date('Y/m/d h:i A', strtotime($message['Message']['created'])); ?></span>
+                                    <span id="message-date"><?php echo date('Y/m/d H:i A', strtotime($message['Message']['created'])); ?></span>
                                 </td>
                                 <td class="text-center">
                                     <?php 
@@ -62,7 +61,7 @@
                                         );
                                     ?>
                                     </p>
-                                    <span id="message-date"><?php echo date('Y/m/d h:i A', strtotime($message['Message']['created'])); ?></span>
+                                    <span id="message-date"><?php echo date('Y/m/d H:i A', strtotime($message['Message']['created'])); ?></span>
                                 </td>                                
                                 <?php endif; ?>
                             </tr>
