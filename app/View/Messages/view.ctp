@@ -81,12 +81,14 @@ function deleteMessage(id) {
         });
     } 
 }
+
 function paginate(count) {
     let user_id = "<?php echo $user['User']['id']; ?>";
     $('#message-here').html('');
     $('.loading').fadeIn();
     getMessages(user_id, count)
 }
+
 function getMessages(id, count) {
     let url = "<?php echo $this->Html->url(array('controller' => 'messages','action' => 'ajax', )); ?>";
     url = url+'/'+id+'/'+count
@@ -95,7 +97,6 @@ function getMessages(id, count) {
         'url': url,
         evalScripts: true,
         success: function (data, status) {  
-            console.log(data)
             $('.loading').fadeOut('slow', function() {                
                 $('#message-here').html(data);
             })

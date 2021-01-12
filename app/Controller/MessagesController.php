@@ -37,44 +37,8 @@ class MessagesController extends AppController {
         $this->set('users', $users);
     }
 
-    public function messageList() {        
-        $authId = $this->Auth->user('id');           
-        $this->Paginator->settings = array(
-            'fields' => array(
-                'Message.*',
-                'Sender.id as senderid',
-                'Sender.name as sendername',
-                'Sender.image as senderimage',
-                'Receiver.id as receiverid',
-                'Receiver.name as receivername',
-                'Receiver.image as receiverimage'
-            ),
-            'conditions' => array(
-                array(
-                    'OR' => array('Message.from_id' => $authId, 'Message.to_id' => $authId),
-                ),
-                array('Message.is_new' => '1'),
-                array('status !=' => 'deleted')        
-            ),
-            'order' => 'Message.created DESC',
-            'limit' => 10,
-            'joins' => array(
-                array(
-                    'type' => 'LEFT',
-                    'table' => 'users',
-                    'alias' => 'Sender',
-                    'conditions' => 'Sender.id = Message.from_id'
-                ),
-                array(
-                    'type' => 'LEFT',
-                    'table' => 'users',
-                    'alias' => 'Receiver',
-                    'conditions' => 'Receiver.id = Message.to_id'
-                )
-            )
-        );
-        $data = $this->Paginator->paginate();
-        $this->set('messages', $data);
+    public function messageList($count = 10) {       
+        $this->set(compact('count'));
     }
 
     public function view($id = null, $count = 10) {
@@ -167,51 +131,6 @@ class MessagesController extends AppController {
         exit;
     }
 
-    public function selectReply($id = null) {
-        $id = $id;
-        $return = array();
-        
-        $query = $this->Message->find('first', array(
-            'fields' => array(
-                'Message.*', 
-                'Sender.id as senderid', 
-                'Sender.name as sendername', 
-                'Sender.image as senderimage', 
-                'Receiver.id as receiverid',
-                'Receiver.name as receivername', 
-                'Receiver.image as receiverimage'
-            ),
-            'conditions' => array('Message.id' => $id),
-            'joins' => array(
-                array(
-                    'table' => 'users',
-                    'alias' => 'Sender',
-                    'type' => 'LEFT',
-                    'conditions' => 'Sender.id = Message.from_id'
-                ),
-                array(
-                    'table' => 'users',
-                    'alias' => 'Receiver',
-                    'type' => 'LEFT',
-                    'conditions' =>'Receiver.id = Message.from_id'
-                )
-            )     
-        ));
-        if(count($query) > 0) {
-            $return = array(
-                'success' => true,
-                'id' => $query['Message']['id'],
-                'to_id' => $query['Message']['to_id'],
-                'content' => $query['Message']['content'],
-                'created' => date('Y/m/d h:i A', strtotime($query['Message']['created'])),
-                'sendername' => ucwords($query['Sender']['sendername']),
-                'senderimage' => $query['Sender']['senderimage'] ? '/training/profile/'.$query['Sender']['senderimage'] : 'https://www.pimacountyfair.com/wp-content/uploads/2016/07/user-icon-6.png'
-            );
-        } 
-        
-        return json_encode($return);
-    }
-
     public function ajax($id = null, $count = 10) {
         $this->layout = false;
         $authId = $this->Auth->user('id');
@@ -253,5 +172,46 @@ class MessagesController extends AppController {
         $messages = $this->Paginator->paginate();
         
         $this->set(compact('messages', 'count', 'id'));
+    }
+
+    public function list($count = 10) {
+        $authId = $this->Auth->user('id');           
+        $this->Paginator->settings = array(
+            'fields' => array(
+                'Message.*',
+                'Sender.id as senderid',
+                'Sender.name as sendername',
+                'Sender.image as senderimage',
+                'Receiver.id as receiverid',
+                'Receiver.name as receivername',
+                'Receiver.image as receiverimage'
+            ),
+            'conditions' => array(
+                array(
+                    'OR' => array('Message.from_id' => $authId, 'Message.to_id' => $authId),
+                ),
+                array('Message.is_new' => '1'),
+                array('status !=' => 'deleted')        
+            ),
+            'order' => 'Message.created DESC',
+            'limit' => $count,
+            'joins' => array(
+                array(
+                    'type' => 'LEFT',
+                    'table' => 'users',
+                    'alias' => 'Sender',
+                    'conditions' => 'Sender.id = Message.from_id'
+                ),
+                array(
+                    'type' => 'LEFT',
+                    'table' => 'users',
+                    'alias' => 'Receiver',
+                    'conditions' => 'Receiver.id = Message.to_id'
+                )
+            )
+        );
+        $messages = $this->Paginator->paginate();
+        $this->layout = false;
+        $this->set(compact('messages', 'count'));
     }
 }
