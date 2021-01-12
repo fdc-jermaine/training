@@ -195,7 +195,7 @@ class MessagesController extends AppController {
         $id = $id;
         $return = array();
         
-        $query = $this->Message->find('all', array(
+        $query = $this->Message->find('first', array(
             'fields' => array(
                 'Message.*', 
                 'Sender.id as senderid', 
@@ -221,16 +221,15 @@ class MessagesController extends AppController {
                 )
             )     
         ));
-        
         if(count($query) > 0) {
             $return = array(
                 'success' => true,
-                'id' => $query[0]['Message']['id'],
-                'to_id' => $query[0]['Message']['to_id'],
-                'content' => $query[0]['Message']['content'],
-                'created' => date('Y/m/d h:i A', strtotime($query[0]['Message']['created'])),
-                'sendername' => $query[0]['Sender']['sendername'],
-                'senderimage' => $query[0]['Sender']['senderimage'] ? '/cakephp/profile/'.$query[0]['Sender']['senderimage'] : 'https://www.pimacountyfair.com/wp-content/uploads/2016/07/user-icon-6.png'
+                'id' => $query['Message']['id'],
+                'to_id' => $query['Message']['to_id'],
+                'content' => $query['Message']['content'],
+                'created' => date('Y/m/d h:i A', strtotime($query['Message']['created'])),
+                'sendername' => $query['Sender']['sendername'],
+                'senderimage' => $query['Sender']['senderimage'] ? '/cakephp/profile/'.$query['Sender']['senderimage'] : 'https://www.pimacountyfair.com/wp-content/uploads/2016/07/user-icon-6.png'
             );
         } 
         
