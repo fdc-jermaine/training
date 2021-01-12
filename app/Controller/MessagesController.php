@@ -8,19 +8,24 @@ class MessagesController extends AppController {
         $this->loadModel('User');
         $users = $this->User->find('all');
         if ($this->request->is('post')) {
+            // check if no recipient
             if ($this->request->data['Message']['to_id'] == 0) {
                 $this->Session->setFlash(__('Please select recipient'));
             } else {
                 $id = $this->request->data['Message']['to_id'];
                 $authId = $this->Auth->user('id');
                 $this->request->data['Message']['from_id'] = $this->Auth->user('id');
-                $update = "
-                    UPDATE messages as Message
-                    SET is_new='0'
-                    WHERE ((Message.from_id = ".$id." && Message.to_id = ".$authId.") 
-                        || (Message.from_id = ".$authId." && Message.to_id = ".$id.")) && Message.is_new = '1'
-                ";
-                $update = $this->Message->query($update);
+                 //  update is_new to 0 before saving new message
+                $this->Message->updateAll(
+                    array('is_new' => '"0"'),
+                    array(
+                        'OR' => array(
+                            array('from_id' => $id, 'to_id' => $authId),
+                            array('from_id' => $authId, 'to_id' => $id)
+                        ),
+                        array('is_new' => '1')
+                    )
+                );
                 if ($this->Message->save($this->request->data)) {                  
                     $this->Session->setFlash(__('Message sent.'));
                     $this->redirect(array('action' => 'messageList'));
@@ -120,12 +125,15 @@ class MessagesController extends AppController {
         $authId = $this->Auth->user('id');   
         $id = $this->request->data['id']; 
         if ($this->request->is('post')) {
-            $query = "
-                DELETE FROM messages 
-                WHERE ((from_id = ".$id." && to_id = ".$authId.") 
-                    || (from_id = ".$authId." && to_id = ".$id."))
-            ";
-            $this->Message->query($query);
+            $this->Message->deleteAll(
+                array(
+                    'OR' => array(
+                        array('from_id' => $id, 'to_id' => $authId),
+                        array('from_id' => $authId, 'to_id' => $id)
+                    )
+                ),
+                false
+            );            
         } else {
             // code if not deleted
         }
@@ -134,19 +142,24 @@ class MessagesController extends AppController {
 
     public function deleteById() {
         $id = $this->request->data['id']; 
-        $query = "
-                DELETE FROM messages 
-                WHERE id=".$id."
-            ";
-        $query = $this->Message->query($query);
-        $this->Message->query("UPDATE messages SET is_new='1' WHERE id = (SELECT max(id) FROM messages)");
+        $this->Message->id = $id;
+        $message = $this->Message->read();        
+       
+        $this->Message->delete($id);
+        $this->Message->query("
+            UPDATE messages 
+            SET is_new='1' 
+            WHERE id = (SELECT max(id) 
+                FROM messages 
+                WHERE (to_id = ".$message['Message']['to_id']." && from_id = ".$message['Message']['from_id'].") ||
+                (to_id = ".$message['Message']['from_id']." && from_id = ".$message['Message']['to_id']."))
+        ");
        
         exit;        
     }
 
     public function reply() {
         if ($this->request->is('post')) {
-
             $id = $this->request->data['to_id']; 
             $authId = $this->Auth->user('id'); 
 
@@ -157,45 +170,59 @@ class MessagesController extends AppController {
                     'to_id' => $this->request->data['to_id']
                 )
             );
-            $update = "
-                UPDATE messages as Message
-                SET is_new='0'
-                WHERE ((Message.from_id = ".$id." && Message.to_id = ".$authId.") 
-                    || (Message.from_id = ".$authId." && Message.to_id = ".$id.")) && Message.is_new = '1'
-            ";
-            $update = $this->Message->query($update);
+            //  update is_new to 0 before saving new message
+            $this->Message->updateAll(
+                array('is_new' => '"0"'),
+                array(
+                    'OR' => array(
+                        array('from_id' => $id, 'to_id' => $authId),
+                        array('from_id' => $authId, 'to_id' => $id)
+                    ),
+                    array('is_new' => '1')
+                )
+            );
+           
 
             if ($this->Message->save($this->request->data)) {                  
                 echo $this->selectReply($this->Message->id);
             } else {
                 $this->Session->setFlash(__('Message not sent.'));
-            }
-            
+            }            
         }
-
         exit;
     }
 
     public function selectReply($id = null) {
         $id = $id;
         $return = array();
-        $query = "
-            SELECT 
-                Message.*, 
-                Sender.id senderid, 
-                Sender.name as sendername, 
-                Sender.image senderimage, 
-                Receiver.id receiverid,
-                Receiver.name receivername, 
-                Receiver.image receiverimage
-            FROM messages AS Message 
-            LEFT JOIN users as Sender 
-            ON Sender.id = Message.from_id
-            LEFT JOIN users as Receiver
-            ON Receiver.id = Message.to_id 
-            WHERE Message.id = ".$id."
-        ";     
-        $query = $this->Message->query($query);
+        
+        $query = $this->Message->find('all', array(
+            'fields' => array(
+                'Message.*', 
+                'Sender.id as senderid', 
+                'Sender.name as sendername', 
+                'Sender.image as senderimage', 
+                'Receiver.id as receiverid',
+                'Receiver.name as receivername', 
+                'Receiver.image as receiverimage'
+            ),
+            'conditions' => array('Message.id' => $id),
+            'joins' => array(
+                array(
+                    'table' => 'users',
+                    'alias' => 'Sender',
+                    'type' => 'LEFT',
+                    'conditions' => 'Sender.id = Message.from_id'
+                ),
+                array(
+                    'table' => 'users',
+                    'alias' => 'Receiver',
+                    'type' => 'LEFT',
+                    'conditions' =>'Receiver.id = Message.from_id'
+                )
+            )     
+        ));
+        
         if(count($query) > 0) {
             $return = array(
                 'success' => true,

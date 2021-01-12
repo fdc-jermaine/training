@@ -39,7 +39,7 @@ class UsersController extends AppController {
                 }
                
             } else {
-                $this->Session->setFlash(__('Failed to save user.'));
+                $this->Session->setFlash(__('Unable to register.'));
             }
         }
     }
