@@ -69,7 +69,7 @@ class MessagesController extends AppController {
                     'table' => 'users',
                     'alias' => 'Receiver',
                     'conditions' => 'Receiver.id = Message.to_id'
-                ),
+                )
             )
         );
         $data = $this->Paginator->paginate();
@@ -113,7 +113,7 @@ class MessagesController extends AppController {
                     'table' => 'users',
                     'alias' => 'Receiver',
                     'conditions' => 'Receiver.id = Message.to_id'
-                ),
+                )
             )
         );
 
@@ -180,8 +180,7 @@ class MessagesController extends AppController {
                     ),
                     array('is_new' => '1')
                 )
-            );
-           
+            );           
 
             if ($this->Message->save($this->request->data)) {                  
                 echo $this->selectReply($this->Message->id);
