@@ -18,7 +18,7 @@ class UsersController extends AppController {
                 );
                 $this->Session->setFlash(__('User successfully login.'));
             } else {
-                $this->Session->setFlash(__('Incorrect User name or password.'));
+                $this->Session->setFlash(__('Incorrect Email or password.'));
             }
         }
     }
@@ -63,7 +63,6 @@ class UsersController extends AppController {
             }
             // remove image validation if no image found
             if (empty($this->request->data['User']['image']['tmp_name'])) {
-                echo 'here';
                 unset($this->User->validate['image']);
             }            
             // form validation

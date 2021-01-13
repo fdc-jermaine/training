@@ -81,16 +81,20 @@ class MessagesController extends AppController {
         $this->Message->updateAll(
             array('status' => '"deleted"', 'is_new' => '"0"'),
             array('id' => $id)
-        );   
+        );  
+       
         $this->Message->query("
             UPDATE messages 
             SET is_new='1' 
-            WHERE id = (SELECT max(id) 
-                FROM messages 
-                WHERE (to_id = ".$message['Message']['to_id']." && from_id = ".$message['Message']['from_id'].") ||
-                (to_id = ".$message['Message']['from_id']." && from_id = ".$message['Message']['to_id'].")) && status != 'deleted' 
+            where id = (SELECT id
+                from messages WHERE 
+                (status != 'deleted') 
+                && (from_id =".$message['Message']['from_id']." && to_id = to_id = ".$message['Message']['to_id'].") 
+                    || (from_id = ".$message['Message']['to_id']." && to_id = ".$message['Message']['from_id'].") 
+                ORDER BY created DESC
+                LIMIT 1)
         ");
-       
+        
         exit;        
     }
 
