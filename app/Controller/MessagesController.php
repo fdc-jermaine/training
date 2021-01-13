@@ -2,7 +2,7 @@
 
 class MessagesController extends AppController {
     public $components = array('Paginator');
-    public $paginate = array();
+    public $pageLimit = 10;
 
     public function create() {
         $this->loadModel('User');
@@ -37,12 +37,14 @@ class MessagesController extends AppController {
         $this->set('users', $users);
     }
 
-    public function messageList($count = 10) {       
+    public function messageList() {       
+        $count = $this->pageLimit;
         $this->set(compact('count'));
     }
 
-    public function view($id = null, $count = 10) {
+    public function view($id = null) {
         $authId = $this->Auth->user('id'); 
+        $count = $this->pageLimit;
         // get the query user
         $this->loadModel('User');
         $this->User->id = $id;
@@ -81,8 +83,7 @@ class MessagesController extends AppController {
         $this->Message->updateAll(
             array('status' => '"deleted"', 'is_new' => '"0"'),
             array('id' => $id)
-        );  
-       
+        ); 
         $this->Message->query("
             UPDATE messages 
             SET is_new='1' 
@@ -93,8 +94,7 @@ class MessagesController extends AppController {
                     || (from_id = ".$message['Message']['to_id']." && to_id = ".$message['Message']['from_id'].") 
                 ORDER BY created DESC
                 LIMIT 1)
-        ");
-        
+        ");        
         exit;        
     }
 
@@ -138,6 +138,7 @@ class MessagesController extends AppController {
     public function ajax($id = null, $count = 10) {
         $this->layout = false;
         $authId = $this->Auth->user('id');
+        $perpage = $this->pageLimit;
         $this->Paginator->settings = array(
             'fields' => array(
                 'Message.*',
@@ -175,11 +176,12 @@ class MessagesController extends AppController {
 
         $messages = $this->Paginator->paginate();
         
-        $this->set(compact('messages', 'count', 'id'));
+        $this->set(compact('messages', 'count', 'id', 'perpage'));
     }
 
     public function list($count = 10) {
-        $authId = $this->Auth->user('id');           
+        $authId = $this->Auth->user('id');  
+        $perpage = $this->pageLimit;         
         $this->Paginator->settings = array(
             'fields' => array(
                 'Message.*',
@@ -216,6 +218,6 @@ class MessagesController extends AppController {
         );
         $messages = $this->Paginator->paginate();
         $this->layout = false;
-        $this->set(compact('messages', 'count'));
+        $this->set(compact('messages', 'count', 'perpage'));
     }
 }

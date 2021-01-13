@@ -58,6 +58,6 @@
 </table>
 <div class="col-md-12 text-center">
     <?php if ($this->Paginator->hasNext()): ?>
-    <button class="btn btn-sm btn-primary" onclick="paginate(<?php echo $count + 10; ?>)">See More</button>
+    <button class="btn btn-sm btn-primary" onclick="paginate(<?php echo $count + $perpage; ?>)">See More</button>
     <?php endif; ?>
 </div>
