@@ -49,8 +49,7 @@ class MessagesController extends AppController {
         $this->loadModel('User');
         $this->User->id = $id;
         $user = $this->User->read();
-
-        
+                
         $this->set(compact('user', 'count'));
     }
 
