@@ -90,8 +90,8 @@ class MessagesController extends AppController {
             where id = (SELECT id
                 from messages WHERE 
                 (status != 'deleted') 
-                && (from_id =".$message['Message']['from_id']." && to_id = to_id = ".$message['Message']['to_id'].") 
-                    || (from_id = ".$message['Message']['to_id']." && to_id = ".$message['Message']['from_id'].") 
+                && ((from_id =".$message['Message']['from_id']." && to_id = to_id = ".$message['Message']['to_id'].") 
+                    || (from_id = ".$message['Message']['to_id']." && to_id = ".$message['Message']['from_id']."))
                 ORDER BY created DESC
                 LIMIT 1)
         ");        
