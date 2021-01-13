@@ -39,20 +39,6 @@ class User extends AppModel {
         )
     );
 
-    public $hasMany = array(        
-        'Received' => array(
-            'className' => 'Message',
-            'foreignKey' => 'from_id',
-            'order' => 'created DESC',
-            'limit' => 1
-        ),  
-        'Sent' => array(
-            'className' => 'Message',
-            'foreignKey' => 'to_id',
-            'order' => 'created DESC',
-            'limit' => 1
-        ) 
-    );
 
     public function validate_password() {
         return $this->data[$this->alias]['password'] === $this->data[$this->alias]['confirm_password'];

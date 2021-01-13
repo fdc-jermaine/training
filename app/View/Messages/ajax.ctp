@@ -4,7 +4,7 @@
         <?php foreach($messages as $message) : ?>
             <tr id="tr<?php echo $message['Message']['id']; ?>">
                 <!-- message if from login user -->
-                <?php if ( $message['Message']['from_id'] == AuthComponent::user('id')) : ?>
+                <?php if ( $message['Relation']['sender_id'] == AuthComponent::user('id')) : ?>
                     <td><i class="fa fa-trash" onclick="deleteMessage(<?php echo $message['Message']['id']; ?>)"></i></td>
                     <td>
                         <p><?php echo $message['Message']['content']; ?></p>

@@ -6,32 +6,37 @@ class MessagesController extends AppController {
 
     public function create() {
         $this->loadModel('User');
+        $this->loadModel('Relation');        
         $users = $this->User->find('all');
         if ($this->request->is('post')) {
-            // check if no recipient
-            if ($this->request->data['Message']['to_id'] == 0) {
+            // check if no recipient            
+
+            if ($this->request->data['Relation']['receiver_id'] == 0) {
                 $this->Session->setFlash(__('Please select recipient'));
             } else {
-                $id = $this->request->data['Message']['to_id'];
+                $flag = true;
                 $authId = $this->Auth->user('id');
-                $this->request->data['Message']['from_id'] = $this->Auth->user('id');
-                 //  update is_new to 0 before saving new message
-                $this->Message->updateAll(
-                    array('is_new' => '"0"'),
-                    array(
-                        'OR' => array(
-                            array('from_id' => $id, 'to_id' => $authId),
-                            array('from_id' => $authId, 'to_id' => $id)
-                        ),
-                        array('is_new' => '1')                       
-                    )
-                );
-                if ($this->Message->save($this->request->data)) {                  
+                $dataSource = $this->Relation->getDataSource(); 
+                $dataSource->begin();
+
+                $this->request->data['Relation']['sender_id'] = $this->Auth->user('id');
+
+                if (!$this->Relation->save($this->request->data['Relation'])) {
+                    $flag = false;
+                }
+                $this->request->data['Message']['relation_id'] = $this->Relation->id;
+                if (!$this->Message->save($this->request->data['Message'])) {
+                    $flag = false;
+                }
+
+                if ($flag) {
+                    $dataSource->commit();
                     $this->Session->setFlash(__('Message sent.'));
                     $this->redirect(array('action' => 'messageList'));
                 } else {
-                    $this->Session->setFlash(__('Message not sent.'));
-                }
+                    $relationSource->rollback();
+                    $this->Session->setFlash(__($ex->getMessage()));
+                }              
             }            
         }
         $this->set('users', $users);
@@ -102,26 +107,21 @@ class MessagesController extends AppController {
     public function reply() {
         if ($this->request->is('post')) {
             $id = $this->request->data['to_id']; 
-            $authId = $this->Auth->user('id'); 
+            $authId = $this->Auth->user('id');           
+            $flag = true;
 
             $this->request->data = array(
                 'Message' => array(
-                    'content' => $this->request->data['content'],
-                    'from_id' => $this->Auth->user('id'),
-                    'to_id' => $this->request->data['to_id']
+                    'content' => $this->request->data['content']
+                ),
+                'Relation' => array(
+                    'receiver_id' =>$id,
+                    'from_id' => $this->Auth->user('id')
                 )
             );
-            //  update is_new to 0 before saving new message
-            $this->Message->updateAll(
-                array('is_new' => '"0"'),
-                array(
-                    'OR' => array(
-                        array('from_id' => $id, 'to_id' => $authId),
-                        array('from_id' => $authId, 'to_id' => $id)
-                    ),
-                    array('is_new' => '1')
-                )
-            );           
+            
+            $dataSource = $this->Relation->getDataSource(); 
+            $dataSource->begin();
 
             if ($this->Message->save($this->request->data)) {                  
                 echo json_encode(
@@ -143,6 +143,7 @@ class MessagesController extends AppController {
         $this->Paginator->settings = array(
             'fields' => array(
                 'Message.*',
+                'Relation.*',
                 'Sender.id as senderid',
                 'Sender.name as sendername',
                 'Sender.image as senderimage',
@@ -152,8 +153,8 @@ class MessagesController extends AppController {
             ),
             'conditions' => array(
                 'OR' => array(
-                    array('Message.from_id' => $id, 'Message.to_id' => $authId),
-                    array('Message.from_id' => $authId, 'Message.to_id' => $id)
+                    array('Relation.sender_id' => $id, 'Relation.receiver_id' => $authId),
+                    array('Relation.sender_id' => $authId, 'Relation.receiver_id' => $id)
                 ),
                 array('status !=' => 'deleted')
             ),
@@ -161,16 +162,22 @@ class MessagesController extends AppController {
             'limit' => $count,
             'joins' => array(
                 array(
+                    'type' => 'Left',
+                    'table' => 'relations',
+                    'alias' => 'Relation',
+                    'conditions' => 'Relation.id = Message.relation_id'
+                ),
+                array(
                     'type' => 'LEFT',
                     'table' => 'users',
                     'alias' => 'Sender',
-                    'conditions' => 'Sender.id = Message.from_id'
+                    'conditions' => 'Sender.id= Relation.sender_id'
                 ),
                 array(
                     'type' => 'LEFT',
                     'table' => 'users',
                     'alias' => 'Receiver',
-                    'conditions' => 'Receiver.id = Message.to_id'
+                    'conditions' => 'Receiver.id= Relation.receiver_id'
                 )
             )
         );
@@ -185,8 +192,8 @@ class MessagesController extends AppController {
         $perpage = $this->pageLimit;         
         $this->Paginator->settings = array(
             'fields' => array(
-                'Message.*',
-                'Sender.id as senderid',
+                't1.*',
+                'm1.*',
                 'Sender.name as sendername',
                 'Sender.image as senderimage',
                 'Receiver.id as receiverid',

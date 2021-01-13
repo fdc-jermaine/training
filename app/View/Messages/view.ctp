@@ -50,7 +50,8 @@ $(document).ready(function() {
                 evalScripts: true,
                 data:(REPLY),
                 success: function (result, status) {  
-                    var data = jQuery.parseJSON(result);
+                    console.log(result);
+                    // var data = jQuery.parseJSON(result);
                     if(data.success) {
                         getMessages(user_id, count); 
                     }

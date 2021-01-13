@@ -56,7 +56,7 @@ function paginate(count) {
 }
 
 function getUserMessage(count) {
-    let url = "<?php echo $this->Html->url(array('controller' => 'messages','action' => 'list')); ?>";
+    let url = "<?php echo $this->Html->url(array('controller' => 'relations','action' => 'list')); ?>";
     url = url+'/'+count;
     $.ajax({
         'type': "get",

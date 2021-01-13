@@ -9,7 +9,7 @@
                     <label>Send To:</label>
                     <?php 
                         echo $this->Form->input(
-                            'to_id',
+                            'Relation.receiver_id',
                             array('label' => false, 'class' => 'users form-control')
                         );
                     ?>
