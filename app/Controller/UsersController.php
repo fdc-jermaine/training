@@ -49,15 +49,20 @@ class UsersController extends AppController {
     }
 
     public function edit() {
-        if ($this->request->is('post')) {            
-            $this->User->set($this->request->data);
-           
-            $birthdate = $this->request->data['User']['birthdate'] ? date('Y-m-d', strtotime($this->request->data['User']['birthdate'])) : null;
-            $gender = $this->request->data['User']['gender'] ? $this->request->data['User']['gender'] : null;
-            $hubby = $this->request->data['User']['hubby'] ? $this->request->data['User']['hubby'] : null;
-            $name = $this->request->data['User']['name'];
-            $ip = $this->request->clientIp();       
-                 
+        if ($this->request->is('post')) {         
+            $data = array();   
+            $this->User->set($this->request->data);  
+
+            if ($this->request->data['User']['birthdate'] != '')  {
+                $data['birthdate'] = $this->request->data['User']['birthdate'];
+            }    
+            if ($this->request->data['User']['gender'] != '') {
+                $data['gender'] = $this->request->data['gender'];
+            }
+            if ($this->request->data['User']['hubby']) {
+                $data['hubby'] = $this->request->data['User']['hubby'];
+            }
+
             if($this->request->data['User']['image'] == '') {
                 unset($this->User->validate['image']);
             }
@@ -67,11 +72,10 @@ class UsersController extends AppController {
             }            
             // form validation
             if ($this->User->validates()) { 
+                $name = $this->request->data['User']['name'];
+                $ip = $this->request->clientIp();      
                 $data = array(
-                    'name' => "'$name'",
-                    'birthdate' => "'$birthdate'",
-                    'gender' => "'$gender'",
-                    'hubby' => "'$hubby'",
+                    'name' => "'$name'",    
                     'modified_ip' => "'$ip'"
                 );
                 // check if post image is present
@@ -86,7 +90,6 @@ class UsersController extends AppController {
                     );   
                     $data['image'] = "'$newFileName'";
                 } 
-
                 // updating data
                 $this->User->updateAll(
                     $data,

@@ -7,19 +7,20 @@ class RelationsController extends AppController {
 
         $this->paginate = array('Relation' => array(
             'fields' => array(
-                't2.*',
                 'Message.*',
                 'Relation.*',
-                '(SELECT id from users WHERE id = Relation.sender_id) AS sender_id',
-                '(SELECT name from users WHERE id = Relation.sender_id) AS sender_name',
-                '(SELECT image from users WHERE id = Relation.sender_id) AS sender_image',
-                '(SELECT id from users WHERE id = Relation.receiver_id) AS receiver_id',    
-                '(SELECT name from users WHERE id = Relation.receiver_id) AS receiver_name',    
-                '(SELECT image from users WHERE id = Relation.receiver_id) AS receiver_image'          
+                'Sender.name as sender_name',
+                'Sender.id as sender_id',
+                'Sender.image as sender_image',
+                'Receiver.name as receiver_name',
+                'Receiver.id as receiver_id',
+                'Receiver.image as receiver_image'
             ), 
             'conditions' => array(
-                "Relation.sender_id = {$authId} OR Relation.receiver_id = {$authId}",
+                "Relation.sender_id = {$authId} 
+                || Relation.receiver_id = {$authId}",
             ),
+            'order' => 'Message.created DESC',
             'limit' => $count,
             'joins' => array(      
                 array(
@@ -33,20 +34,34 @@ class RelationsController extends AppController {
                     'table' => "(SELECT
                                 LEAST(sender_id, receiver_id) AS sender_id,
                                 GREATEST(sender_id, receiver_id) AS receiver_id,
-                                MAX(id) AS max_id
-                                FROM relations 
+                                MAX(r2.id) AS max_id
+                                FROM relations as r2
+                                LEFT JOIN messages as m2
+                                ON m2.relation_id = r2.id
+                                WHERE m2.status != 'deleted'
                                 GROUP BY
                                     LEAST(sender_id, receiver_id),
                                     GREATEST(sender_id, receiver_id))",
                     'alias' => 't2',
-                    'conditions' => 'LEAST(Relation.sender_id, Relation.receiver_id) = t2.sender_id AND
-                        GREATEST(Relation.sender_id, Relation.receiver_id) = t2.receiver_id AND
-                        Relation.id = t2.max_id'
+                    'conditions' => 'Relation.id = t2.max_id'
+                ),
+                array(
+                    'type' => 'LEFT',
+                    'table' => 'users',
+                    'alias' => 'Sender',
+                    'conditions' => 'Sender.id = Relation.sender_id'
+                ),
+                array(
+                    'type' => 'LEFT',
+                    'table' => 'users',
+                    'alias' => 'Receiver',
+                    'conditions' => 'Receiver.id = Relation.receiver_id'
                 )
             )
         ));
 
         $messages = $this->paginate('Relation');
+       
         $this->layout = false;
         $this->set(compact('messages', 'count', 'perpage'));
     }

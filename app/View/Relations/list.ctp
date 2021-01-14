@@ -8,7 +8,7 @@
                     <td id="td<?php echo $message['Relation']['receiver_id']; ?>">
                         <i class="fa fa-trash" onclick="deleteMessage(<?php echo $message['Relation']['receiver_id']; ?>)"></i>
                     </td>
-                    <td><?php echo ucwords($message[0]['receiver_name']); ?></td>
+                    <td><?php echo ucwords($message['Receiver']['receiver_name']); ?></td>
                     <td>
                         <p>
                         <?php 
@@ -23,7 +23,7 @@
                     </td>
                     <td class="text-center">
                         <?php 
-                            $image = $message[0]['sender_image'] ? '/profile/'.$message[0]['sender_image'] : 'https://www.pimacountyfair.com/wp-content/uploads/2016/07/user-icon-6.png';
+                            $image = $message['Sender']['sender_image'] ? '/profile/'.$message['Sender']['sender_image'] : 'https://www.pimacountyfair.com/wp-content/uploads/2016/07/user-icon-6.png';
                             echo $this->Html->image($image);     
                         ?>
                     </td>
@@ -32,10 +32,10 @@
                     <td id="td<?php echo $message['Relation']['sender_id']; ?>">
                         <i class="fa fa-trash" onclick="deleteMessage(<?php echo $message['Relation']['sender_id']; ?>)"></i>
                     </td> 
-                    <td><?php echo ucwords($message[0]['receiver_name']); ?></td>
+                    <td><?php echo ucwords($message['Sender']['sender_name']); ?></td>
                     <td class="text-center">
                         <?php 
-                            $image = $message[0]['receiver_image'] ? '/profile/'.$message[0]['receiver_image'] : 'https://www.pimacountyfair.com/wp-content/uploads/2016/07/user-icon-6.png';
+                            $image = $message['Sender']['sender_image'] ? '/profile/'.$message['Receiver']['receiver_image'] : 'https://www.pimacountyfair.com/wp-content/uploads/2016/07/user-icon-6.png';
                             echo $this->Html->image($image);     
                         ?>
                     </td>    

@@ -19,8 +19,20 @@
                     </div>
                     <div class="col-md-8" id="profile-info">
                         <h4><?php echo ucwords(AuthComponent::user('name')); ?></h4>
-                        <p>Gender: <span><?php echo AuthComponent::user('gender') == 1 ? 'Male' : 'Female'; ?></span></p>
-                        <p>Birthdate: <span><?php echo date('F j, Y', strtotime(AuthComponent::user('birthdate'))); ?></span></p>
+                        <p>Gender: 
+                            <span>
+                                <?php 
+                                    if (AuthComponent::user('gender') == 1) {
+                                        echo 'Male';
+                                    } elseif (AuthComponent::user('gender') == 2) {
+                                        echo 'Female';
+                                    } else {
+                                        echo 'Not Specified';
+                                    }
+                                ?>
+                            </span>
+                        </p>
+                        <p>Birthdate: <span><?php echo !empty(AuthComponent::user('birthdate')) ? date('F j, Y', strtotime(AuthComponent::user('birthdate'))) : ''; ?></span></p>
                         <p>Joined: <span><?php echo date('F j, Y', strtotime(AuthComponent::user('created'))); ?></span></p>
                         <p>Last Login: <span><?php echo date('F j, Y h:m A', strtotime(AuthComponent::user('last_login_time'))); ?></span></p>
                     </div>

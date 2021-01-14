@@ -55,8 +55,11 @@ class MessagesController extends AppController {
         $this->loadModel('User');
         $this->User->id = $id;
         $user = $this->User->read();
-                
-        
+        if(!$user) {
+            $this->Session->setFlash(__('User Not Found'));
+            $this->redirect($this->referer());
+        }
+
         $this->set(compact('user', 'count'));
     }
 
@@ -68,10 +71,10 @@ class MessagesController extends AppController {
             $this->Message->updateAll(
                 array('status' => '"deleted"'),
                 array(
-                    'OR' => array(
-                        array('from_id' => $id, 'to_id' => $authId),
-                        array('from_id' => $authId, 'to_id' => $id)
-                    )
+                    "relation_id IN 
+                    (SELECT id 
+                    from relations 
+                    WHERE (receiver_id = {$id} && sender_id = {$authId}) || (receiver_id = {$authId} && sender_id = {$id}))"
                 )
             );     
               
@@ -87,27 +90,19 @@ class MessagesController extends AppController {
         $message = $this->Message->read();        
        
         $this->Message->updateAll(
-            array('status' => '"deleted"', 'is_new' => '"0"'),
+            array('status' => '"deleted"',),
             array('id' => $id)
         ); 
-        $this->Message->query("
-            UPDATE messages 
-            SET is_new='1' 
-            where id = (SELECT id
-                from messages WHERE 
-                (status != 'deleted') 
-                && ((from_id =".$message['Message']['from_id']." && to_id = ".$message['Message']['to_id'].") 
-                    || (from_id = ".$message['Message']['to_id']." && to_id = ".$message['Message']['from_id']."))
-                ORDER BY created DESC
-                LIMIT 1)
-        ");        
         exit;        
     }
 
     public function reply() {
+        $this->loadModel('Relation');
         if ($this->request->is('post')) {
             $id = $this->request->data['to_id']; 
-            $authId = $this->Auth->user('id');           
+            $authId = $this->Auth->user('id'); 
+            $dataSource = $this->Relation->getDataSource(); 
+            $dataSource->begin();
             $flag = true;
 
             $this->request->data = array(
@@ -116,22 +111,27 @@ class MessagesController extends AppController {
                 ),
                 'Relation' => array(
                     'receiver_id' =>$id,
-                    'from_id' => $this->Auth->user('id')
+                    'sender_id' => $this->Auth->user('id')
                 )
             );
-            
-            $dataSource = $this->Relation->getDataSource(); 
-            $dataSource->begin();
 
-            if ($this->Message->save($this->request->data)) {                  
-                echo json_encode(
-                    array('success' => true)
-                );
+            if (!$this->Relation->save($this->request->data)) {
+                $flag = false;
+            }
+
+            $this->request->data['Message']['relation_id'] = $this->Relation->id;
+            if (!$this->Message->save($this->request->data)) {  
+                $flag = false;                
+            }
+
+            if ($flag) {
+                $dataSource->commit();
+                echo json_encode(array('success' => true));
             } else {
-                echo json_encode(
-                    array('success' => false)
-                );
-            }            
+                $dataSource->rollback();
+                echo json_encode(array('success' => false));
+            }
+
         }
         exit;
     }
@@ -185,47 +185,5 @@ class MessagesController extends AppController {
         $messages = $this->Paginator->paginate();
         
         $this->set(compact('messages', 'count', 'id', 'perpage'));
-    }
-
-    public function list($count = 10) {
-        $authId = $this->Auth->user('id');  
-        $perpage = $this->pageLimit;         
-        $this->Paginator->settings = array(
-            'fields' => array(
-                't1.*',
-                'm1.*',
-                'Sender.name as sendername',
-                'Sender.image as senderimage',
-                'Receiver.id as receiverid',
-                'Receiver.name as receivername',
-                'Receiver.image as receiverimage'
-            ),
-            'conditions' => array(
-                array(
-                    'OR' => array('Message.from_id' => $authId, 'Message.to_id' => $authId),
-                ),
-                array('Message.is_new' => '1'),
-                array('status !=' => 'deleted')        
-            ),
-            'order' => 'Message.created DESC',
-            'limit' => $count,
-            'joins' => array(
-                array(
-                    'type' => 'LEFT',
-                    'table' => 'users',
-                    'alias' => 'Sender',
-                    'conditions' => 'Sender.id = Message.from_id'
-                ),
-                array(
-                    'type' => 'LEFT',
-                    'table' => 'users',
-                    'alias' => 'Receiver',
-                    'conditions' => 'Receiver.id = Message.to_id'
-                )
-            )
-        );
-        $messages = $this->Paginator->paginate();
-        $this->layout = false;
-        $this->set(compact('messages', 'count', 'perpage'));
     }
 }
