@@ -34,7 +34,7 @@ class MessagesController extends AppController {
                     $this->Session->setFlash(__('Message sent.'));
                     $this->redirect(array('action' => 'messageList'));
                 } else {
-                    $relationSource->rollback();
+                    $dataSource->rollback();
                     $this->Session->setFlash(__('Message not sent.'));
                 }              
             }            
