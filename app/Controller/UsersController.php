@@ -54,13 +54,16 @@ class UsersController extends AppController {
             $this->User->set($this->request->data);  
 
             if ($this->request->data['User']['birthdate'] != '')  {
-                $data['birthdate'] = $this->request->data['User']['birthdate'];
+                $birthdate = date('Y-m-d',strtotime($this->request->data['User']['birthdate']));
+                $data['birthdate'] = "'$birthdate'";
             }    
             if ($this->request->data['User']['gender'] != '') {
-                $data['gender'] = $this->request->data['gender'];
+                $gender = $this->request->data['User']['gender'];
+                $data['gender'] = "'$gender'";
             }
             if ($this->request->data['User']['hubby']) {
-                $data['hubby'] = $this->request->data['User']['hubby'];
+                $hubby = $this->request->data['User']['hubby'];
+                $data['hubby'] = "'$hubby'";
             }
 
             if($this->request->data['User']['image'] == '') {
@@ -73,11 +76,11 @@ class UsersController extends AppController {
             // form validation
             if ($this->User->validates()) { 
                 $name = $this->request->data['User']['name'];
-                $ip = $this->request->clientIp();      
-                $data = array(
-                    'name' => "'$name'",    
-                    'modified_ip' => "'$ip'"
-                );
+                $ip = $this->request->clientIp();   
+                
+                $data['name'] = "'$name'";
+                $data['modified_ip'] = "'$ip'";
+                
                 // check if post image is present
                 if (!empty($this->request->data['User']['image']['tmp_name'])
                     && is_uploaded_file($this->request->data['User']['image']['tmp_name'])) {

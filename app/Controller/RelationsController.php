@@ -23,7 +23,7 @@ class RelationsController extends AppController {
                     FROM relations as r2
                     LEFT JOIN messages as m2
                     ON m2.relation_id = r2.id
-                    WHERE (m2.status != 'deleted') && (r2.sender_id = {$authId} || r2.receiver_id = {$authId})
+                    WHERE (m2.status != 'deleted') AND (r2.sender_id = {$authId} OR r2.receiver_id = {$authId})
                     GROUP BY
                         LEAST(sender_id, receiver_id),
                         GREATEST(sender_id, receiver_id))",
@@ -54,7 +54,7 @@ class RelationsController extends AppController {
 
         $messages = $this->paginate('Relation');
        
-       // $this->layout = false;
+        $this->layout = false;
         $this->set(compact('messages', 'count', 'perpage'));
     }
 }
