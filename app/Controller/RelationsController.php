@@ -1,9 +1,9 @@
 <?php 
     
 class RelationsController extends AppController {
-    public function list($count = 1) {
+    public function list($count = 10) {
         $authId = $this->Auth->user('id');          
-        $perpage = 1;   
+        $perpage = 10;   
 
         $this->paginate = array('Relation' => array(
             'fields' => array(

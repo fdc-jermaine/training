@@ -49,9 +49,8 @@ $(document).ready(function() {
                 'url': url,
                 evalScripts: true,
                 data:(REPLY),
-                success: function (result, status) {  
-                    console.log(result);
-                    // var data = jQuery.parseJSON(result);
+                success: function (result, status) { 
+                    var data = jQuery.parseJSON(result);
                     if(data.success) {
                         getMessages(user_id, count); 
                     }
@@ -76,7 +75,6 @@ function deleteMessage(id) {
             evalScripts: true,
             data:({id:id}),
             success: function (data, status) { 
-                console.log(data);  
                 $('#tr'+id).fadeOut();       
             }
         });

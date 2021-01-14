@@ -55,7 +55,6 @@ $(document).ready(function() {
                 };
             },
             processResults: function (response) {
-                console.log('response', response);
                 return {
                     results:response
                 };

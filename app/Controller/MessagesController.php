@@ -35,7 +35,7 @@ class MessagesController extends AppController {
                     $this->redirect(array('action' => 'messageList'));
                 } else {
                     $relationSource->rollback();
-                    $this->Session->setFlash(__($ex->getMessage()));
+                    $this->Session->setFlash(__('Message not sent.'));
                 }              
             }            
         }
@@ -74,7 +74,8 @@ class MessagesController extends AppController {
                     "relation_id IN 
                     (SELECT id 
                     from relations 
-                    WHERE (receiver_id = {$id} && sender_id = {$authId}) || (receiver_id = {$authId} && sender_id = {$id}))"
+                    WHERE (receiver_id = {$id} && sender_id = {$authId}) 
+                        || (receiver_id = {$authId} && sender_id = {$id}))"
                 )
             );     
               
